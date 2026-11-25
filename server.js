@@ -193,3 +193,57 @@ app.put('/matriculas/:id', (req, res) => {
     res.json('Atualização de matricula realizada com sucesso!');
   });
 });
+
+//ROTAS DELETE
+
+app.delete('/professores/:id', (req, res) => {
+  const { id } = req.params;
+  const query = 'DELETE FROM professores WHERE id = ?';
+  db.query(query, [id], (err, results) => {
+    if (err) {
+      console.error('Erro ao deletar professor:', err);
+      res.status(500).send('Erro ao deletar professor');
+      return;
+    }
+    res.json('Exclusão de professor realizada com sucesso!');
+  });
+});
+
+app.delete('/alunos/:id', (req, res) => {
+  const { id } = req.params;
+  const query = 'DELETE FROM alunos WHERE id = ?';
+  db.query(query, [id], (err, results) => {
+    if (err) {
+      console.error('Erro ao deletar aluno:', err);
+      res.status(500).send('Erro ao deletar aluno');
+      return;
+    }
+    res.json('Exclusão de aluno realizada com sucesso!');
+  });
+});
+
+app.delete('/turmas/:id', (req, res) => {
+  const { id } = req.params;
+  const query = 'DELETE FROM turmas WHERE id = ?';
+  db.query(query, [id], (err, results) => {
+    if (err) {
+      console.error('Erro ao deletar turma:', err);
+      res.status(500).send('Erro ao deletar turma');
+      return;
+    }
+    res.json('Exclusão de turma realizada com sucesso!');
+  });
+});
+
+app.delete('/matriculas/:id', (req, res) => {
+  const { id } = req.params;
+  const query = 'DELETE FROM matriculas WHERE id = ?';
+  db.query(query, [id], (err, results) => {
+    if (err) {
+      console.error('Erro ao deletar matricula:', err);
+      res.status(500).send('Erro ao deletar matricula');
+      return;
+    }
+    res.json('Exclusão de matricula realizada com sucesso!');
+  });
+});
