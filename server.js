@@ -28,6 +28,7 @@ db.connect((err) => {
   console.log('Conexão bem-sucedida ao banco de dados MySQL!'); 
 });
 
+//ROTAS GET
 app.get('/alunos', (req, res) => {
   const query = 'SELECT * FROM alunos';
   db.query(query, (err, results) => {
@@ -77,7 +78,11 @@ app.get('/matriculas', (req, res) => {
   });
 });
 
-app.post('professores', (req, res) => {
+//ROTAS POST
+
+app.use(express.json());
+
+app.post('/professores', (req, res) => {
   const {nome, email, especialidade, ativo} = req.body;
   const query = 'INSERT INTO professores (nome, email, especialidade, ativo) VALUES (?, ?, ?, ?)';
   db.query(query, [nome, email, especialidade, ativo], (err, results) => {
@@ -102,5 +107,31 @@ app.post('/alunos', (req, res) => {
       return;
     }
     res.status(201).json('Cadastro de aluno realizado com sucesso!');
+  });
+});
+
+app.post('/turmas', (req, res) => {
+  const {codigo, nome, periodo, sala, criado_em} = req.body;
+  const query = 'INSERT INTO turmas (codigo, nome, periodo, sala, criado_em) VALUES (?, ?, ?, ?, ?)';
+  db.query(query, [codigo, nome, periodo, sala, criado_em], (err, results) => {
+    if (err) {
+      console.error('Erro ao inserir turma:', err);
+      res.status(500).send('Erro ao inserir turma');
+      return;
+    }
+    res.status(201).json('Cadastro de turma realizado com sucesso!');
+  });
+});
+
+app.post('/matriculas', (req, res) => {
+  const {aluno_id, turma_id, nota_final, frequencia_pct, status, observacao, data_matricula} = req.body;
+  const query = 'INSERT INTO matriculas (aluno_id, turma_id, nota_final, frequencia_pct, status, observacao, data_matricula) VALUES (?, ?, ?, ?, ?, ?, ?)';
+  db.query(query, [aluno_id, turma_id, nota_final, frequencia_pct, status, observacao, data_matricula], (err, results) => {
+    if (err) {
+      console.error('Erro ao inserir matricula:', err);
+      res.status(500).send('Erro ao inserir matricula');
+      return;
+    }
+    res.status(201).json('Cadastro de matricula realizado com sucesso!');
   });
 });
