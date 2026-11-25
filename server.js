@@ -1,34 +1,28 @@
 const express = require('express');
+const mysql = require('mysql2');
+
 const app = express();
 const port = 3000;
 
-app.get('/', (req, res) => {
-  res.send('Hello World!');
-});
-
-app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
-});
-
-
-const mysql = require('mysql2');
+app.use(express.json());
+app.use(express.static('public'));
 
 const db = mysql.createConnection({
   host: 'localhost',
   user: 'root',
   password: 'root',
   database: 'educacao_crud'
-}); 
+});
 
 db.connect((err) => {
   if (err) {
     console.error('Erro ao conectar ao banco de dados:', err);
     return;
   }
-  console.log('Conexão bem-sucedida ao banco de dados MySQL!'); 
+  console.log('Conexão bem-sucedida ao banco de dados MySQL!');
 });
 
-//ROTAS GET
+// ROTAS GET
 app.get('/alunos', (req, res) => {
   const query = 'SELECT * FROM alunos';
   db.query(query, (err, results) => {
@@ -41,9 +35,8 @@ app.get('/alunos', (req, res) => {
   });
 });
 
-
 app.get('/professores', (req, res) => {
-  const query = 'SELECT * FROM professores'; 
+  const query = 'SELECT * FROM professores';
   db.query(query, (err, results) => {
     if (err) {
       console.error('Erro ao buscar professores:', err);
@@ -51,11 +44,11 @@ app.get('/professores', (req, res) => {
       return;
     }
     res.json(results);
-  } );
+  });
 });
 
 app.get('/turmas', (req, res) => {
-  const query = 'SELECT * FROM turmas'; 
+  const query = 'SELECT * FROM turmas';
   db.query(query, (err, results) => {
     if (err) {
       console.error('Erro ao buscar turmas:', err);
@@ -78,15 +71,16 @@ app.get('/matriculas', (req, res) => {
   });
 });
 
-//ROTAS POST
-
-app.use(express.json());
-
+// ROTAS POST
 app.post('/professores', (req, res) => {
-  const {nome, email, especialidade, ativo} = req.body;
+  const { nome, email, especialidade = null, ativo = 1 } = req.body;
   const query = 'INSERT INTO professores (nome, email, especialidade, ativo) VALUES (?, ?, ?, ?)';
   db.query(query, [nome, email, especialidade, ativo], (err, results) => {
     if (err) {
+      if (err.code === 'ER_DUP_ENTRY') {
+        res.status(409).send('Já existe um professor com esse e-mail');
+        return;
+      }
       console.error('Erro ao inserir professor:', err);
       res.status(500).send('Erro ao inserir professor');
       return;
@@ -95,13 +89,15 @@ app.post('/professores', (req, res) => {
   });
 });
 
-
-
 app.post('/alunos', (req, res) => {
-  const {matricula, nome, email, curso, ativo} = req.body;
+  const { matricula, nome, email, curso, ativo = 1 } = req.body;
   const query = 'INSERT INTO alunos (matricula, nome, email, curso, ativo) VALUES (?, ?, ?, ?, ?)';
   db.query(query, [matricula, nome, email, curso, ativo], (err, results) => {
     if (err) {
+      if (err.code === 'ER_DUP_ENTRY') {
+        res.status(409).send('Matrícula ou e-mail de aluno já cadastrado');
+        return;
+      }
       console.error('Erro ao inserir aluno:', err);
       res.status(500).send('Erro ao inserir aluno');
       return;
@@ -111,10 +107,18 @@ app.post('/alunos', (req, res) => {
 });
 
 app.post('/turmas', (req, res) => {
-  const {codigo, nome, periodo, sala, criado_em} = req.body;
-  const query = 'INSERT INTO turmas (codigo, nome, periodo, sala, criado_em) VALUES (?, ?, ?, ?, ?)';
-  db.query(query, [codigo, nome, periodo, sala, criado_em], (err, results) => {
+  const { codigo, nome, periodo, professor_id = null, sala = null } = req.body;
+  const query = 'INSERT INTO turmas (codigo, nome, periodo, professor_id, sala) VALUES (?, ?, ?, ?, ?)';
+  db.query(query, [codigo, nome, periodo, professor_id, sala], (err, results) => {
     if (err) {
+      if (err.code === 'ER_DUP_ENTRY') {
+        res.status(409).send('Já existe uma turma com esse código');
+        return;
+      }
+      if (err.code === 'ER_NO_REFERENCED_ROW_2') {
+        res.status(400).send('Professor informado não existe');
+        return;
+      }
       console.error('Erro ao inserir turma:', err);
       res.status(500).send('Erro ao inserir turma');
       return;
@@ -124,26 +128,53 @@ app.post('/turmas', (req, res) => {
 });
 
 app.post('/matriculas', (req, res) => {
-  const {aluno_id, turma_id, nota_final, frequencia_pct, status, observacao, data_matricula} = req.body;
-  const query = 'INSERT INTO matriculas (aluno_id, turma_id, nota_final, frequencia_pct, status, observacao, data_matricula) VALUES (?, ?, ?, ?, ?, ?, ?)';
-  db.query(query, [aluno_id, turma_id, nota_final, frequencia_pct, status, observacao, data_matricula], (err, results) => {
-    if (err) {
-      console.error('Erro ao inserir matricula:', err);
-      res.status(500).send('Erro ao inserir matricula');
-      return;
+  const {
+    aluno_id,
+    turma_id,
+    nota_final = null,
+    frequencia_pct = null,
+    status = 'CURSANDO',
+    observacao = null,
+    data_matricula = null
+  } = req.body;
+  const query = `
+    INSERT INTO matriculas
+      (aluno_id, turma_id, nota_final, frequencia_pct, status, observacao, data_matricula)
+    VALUES (?, ?, ?, ?, ?, ?, COALESCE(?, CURRENT_DATE))
+  `;
+  db.query(
+    query,
+    [aluno_id, turma_id, nota_final, frequencia_pct, status, observacao, data_matricula],
+    (err, results) => {
+      if (err) {
+        if (err.code === 'ER_DUP_ENTRY') {
+          res.status(409).send('Aluno já matriculado nessa turma');
+          return;
+        }
+        if (err.code === 'ER_NO_REFERENCED_ROW_2') {
+          res.status(400).send('Aluno ou turma informada não existe');
+          return;
+        }
+        console.error('Erro ao inserir matricula:', err);
+        res.status(500).send('Erro ao inserir matricula');
+        return;
+      }
+      res.status(201).json('Cadastro de matricula realizado com sucesso!');
     }
-    res.status(201).json('Cadastro de matricula realizado com sucesso!');
-  });
+  );
 });
 
-//ROTAS PUT
-
+// ROTAS PUT
 app.put('/professores/:id', (req, res) => {
   const { id } = req.params;
-  const { nome, email, especialidade, ativo } = req.body;
+  const { nome, email, especialidade = null, ativo = 1 } = req.body;
   const query = 'UPDATE professores SET nome = ?, email = ?, especialidade = ?, ativo = ? WHERE id = ?';
   db.query(query, [nome, email, especialidade, ativo, id], (err, results) => {
     if (err) {
+      if (err.code === 'ER_DUP_ENTRY') {
+        res.status(409).send('Já existe um professor com esse e-mail');
+        return;
+      }
       console.error('Erro ao atualizar professor:', err);
       res.status(500).send('Erro ao atualizar professor');
       return;
@@ -154,10 +185,14 @@ app.put('/professores/:id', (req, res) => {
 
 app.put('/alunos/:id', (req, res) => {
   const { id } = req.params;
-  const { matricula, nome, email, curso, ativo } = req.body;
+  const { matricula, nome, email, curso, ativo = 1 } = req.body;
   const query = 'UPDATE alunos SET matricula = ?, nome = ?, email = ?, curso = ?, ativo = ? WHERE id = ?';
   db.query(query, [matricula, nome, email, curso, ativo, id], (err, results) => {
     if (err) {
+      if (err.code === 'ER_DUP_ENTRY') {
+        res.status(409).send('Matrícula ou e-mail de aluno já cadastrado');
+        return;
+      }
       console.error('Erro ao atualizar aluno:', err);
       res.status(500).send('Erro ao atualizar aluno');
       return;
@@ -168,10 +203,18 @@ app.put('/alunos/:id', (req, res) => {
 
 app.put('/turmas/:id', (req, res) => {
   const { id } = req.params;
-  const { codigo, nome, periodo, sala, criado_em } = req.body;
-  const query = 'UPDATE turmas SET codigo = ?, nome = ?, periodo = ?, sala = ?, criado_em = ? WHERE id = ?';
-  db.query(query, [codigo, nome, periodo, sala, criado_em, id], (err, results) => {
+  const { codigo, nome, periodo, professor_id = null, sala = null } = req.body;
+  const query = 'UPDATE turmas SET codigo = ?, nome = ?, periodo = ?, professor_id = ?, sala = ? WHERE id = ?';
+  db.query(query, [codigo, nome, periodo, professor_id, sala, id], (err, results) => {
     if (err) {
+      if (err.code === 'ER_DUP_ENTRY') {
+        res.status(409).send('Já existe uma turma com esse código');
+        return;
+      }
+      if (err.code === 'ER_NO_REFERENCED_ROW_2') {
+        res.status(400).send('Professor informado não existe');
+        return;
+      }
       console.error('Erro ao atualizar turma:', err);
       res.status(500).send('Erro ao atualizar turma');
       return;
@@ -182,20 +225,49 @@ app.put('/turmas/:id', (req, res) => {
 
 app.put('/matriculas/:id', (req, res) => {
   const { id } = req.params;
-  const { aluno_id, turma_id, nota_final, frequencia_pct, status, observacao, data_matricula } = req.body;
-  const query = 'UPDATE matriculas SET aluno_id = ?, turma_id = ?, nota_final = ?, frequencia_pct = ?, status = ?, observacao = ?, data_matricula = ? WHERE id = ?';
-  db.query(query, [aluno_id, turma_id, nota_final, frequencia_pct, status, observacao, data_matricula, id], (err, results) => {
-    if (err) {
-      console.error('Erro ao atualizar matricula:', err);
-      res.status(500).send('Erro ao atualizar matricula');
-      return;
+  const {
+    aluno_id,
+    turma_id,
+    nota_final = null,
+    frequencia_pct = null,
+    status = 'CURSANDO',
+    observacao = null,
+    data_matricula = null
+  } = req.body;
+  const query = `
+    UPDATE matriculas
+    SET aluno_id = ?,
+        turma_id = ?,
+        nota_final = ?,
+        frequencia_pct = ?,
+        status = ?,
+        observacao = ?,
+        data_matricula = COALESCE(?, data_matricula)
+    WHERE id = ?
+  `;
+  db.query(
+    query,
+    [aluno_id, turma_id, nota_final, frequencia_pct, status, observacao, data_matricula, id],
+    (err, results) => {
+      if (err) {
+        if (err.code === 'ER_DUP_ENTRY') {
+          res.status(409).send('Aluno já matriculado nessa turma');
+          return;
+        }
+        if (err.code === 'ER_NO_REFERENCED_ROW_2') {
+          res.status(400).send('Aluno ou turma informada não existe');
+          return;
+        }
+        console.error('Erro ao atualizar matricula:', err);
+        res.status(500).send('Erro ao atualizar matricula');
+        return;
+      }
+      res.json('Atualização de matricula realizada com sucesso!');
     }
-    res.json('Atualização de matricula realizada com sucesso!');
-  });
+  );
 });
 
-//ROTAS DELETE
-
+// ROTAS DELETE
 app.delete('/professores/:id', (req, res) => {
   const { id } = req.params;
   const query = 'DELETE FROM professores WHERE id = ?';
@@ -246,4 +318,8 @@ app.delete('/matriculas/:id', (req, res) => {
     }
     res.json('Exclusão de matricula realizada com sucesso!');
   });
+});
+
+app.listen(port, () => {
+  console.log(`Server is running on http://localhost:${port}`);
 });

@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sistema Acadêmico - CRUD</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container">
+      <h1>Sistema Acadêmico</h1>
+      <p>Projeto de API- Disciplina de Desenvolvimento Web</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <nav class="tabs" role="tablist">
+      <button class="tab-btn active" data-tab="professores">Professores</button>
+      <button class="tab-btn" data-tab="alunos">Alunos</button>
+      <button class="tab-btn" data-tab="turmas">Turmas</button>
+      <button class="tab-btn" data-tab="matriculas">Matrículas</button>
+    </nav>
+
+    <div id="feedback" class="feedback hidden"></div>
+
+    <section id="tab-professores" class="tab-panel active">
+      <div class="grid">
+        <form id="form-professores" class="card">
+          <h2 id="title-professores">Novo Professor</h2>
+          <input type="hidden" id="professor-id" name="id" />
+
+          <label for="professor-nome">
+            Nome *
+            <input type="text" id="professor-nome" name="nome" required placeholder="Ex.: Carlos Henrique" />
+          </label>
+
+          <label for="professor-email">
+            E-mail *
+            <input type="email" id="professor-email" name="email" required placeholder="carlos@faculdade.edu.br" />
+          </label>
+
+          <label for="professor-especialidade">
+            Especialidade
+            <input type="text" id="professor-especialidade" name="especialidade" placeholder="Ex.: Banco de Dados" />
+          </label>
+
+          <label for="professor-ativo" class="checkbox-row">
+            <input type="checkbox" id="professor-ativo" name="ativo" checked />
+            Professor ativo
+          </label>
+
+          <div class="actions">
+            <button type="submit" id="btn-salvar-professor" class="btn primary">Salvar</button>
+            <button type="button" id="btn-limpar-professor" class="btn secondary" data-reset="professores">Limpar</button>
+          </div>
+        </form>
+
+        <div class="card table-card">
+          <div class="card-header">
+            <h2>Professores Cadastrados</h2>
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Nome</th>
+                  <th>E-mail</th>
+                  <th>Especialidade</th>
+                  <th>Status</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-professores"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="tab-alunos" class="tab-panel">
+      <div class="grid">
+        <form id="form-alunos" class="card">
+          <h2 id="title-alunos">Novo Aluno</h2>
+          <input type="hidden" id="aluno-id" name="id" />
+
+          <label for="aluno-matricula">
+            Matrícula *
+            <input type="text" id="aluno-matricula" name="matricula" required placeholder="Ex.: 202600101" />
+          </label>
+
+          <label for="aluno-nome">
+            Nome *
+            <input type="text" id="aluno-nome" name="nome" required placeholder="Ex.: Lucas Mendes" />
+          </label>
+
+          <label for="aluno-email">
+            E-mail *
+            <input type="email" id="aluno-email" name="email" required placeholder="lucas@aluno.edu.br" />
+          </label>
+
+          <label for="aluno-curso">
+            Curso *
+            <input type="text" id="aluno-curso" name="curso" required placeholder="Ex.: Análise e Desenv. de Sistemas" />
+          </label>
+
+          <label for="aluno-ativo" class="checkbox-row">
+            <input type="checkbox" id="aluno-ativo" name="ativo" checked />
+            Aluno ativo
+          </label>
+
+          <div class="actions">
+            <button type="submit" id="btn-salvar-aluno" class="btn primary">Salvar</button>
+            <button type="button" id="btn-limpar-aluno" class="btn secondary" data-reset="alunos">Limpar</button>
+          </div>
+        </form>
+
+        <div class="card table-card">
+          <div class="card-header">
+            <h2>Alunos Cadastrados</h2>
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Matrícula</th>
+                  <th>Nome</th>
+                  <th>Email</th>
+                  <th>Curso</th>
+                  <th>Status</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-alunos"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="tab-turmas" class="tab-panel">
+      <div class="grid">
+        <form id="form-turmas" class="card">
+          <h2 id="title-turmas">Nova Turma</h2>
+          <input type="hidden" id="turma-id" name="id" />
+
+          <label for="turma-codigo">
+            Código *
+            <input type="text" id="turma-codigo" name="codigo" required placeholder="Ex.: API-2026-2-A" />
+          </label>
+
+          <label for="turma-nome">
+            Nome da Turma / Disciplina *
+            <input type="text" id="turma-nome" name="nome" required placeholder="Ex.: Desenvolvimento de APIs" />
+          </label>
+
+          <label for="turma-periodo">
+            Período *
+            <input type="text" id="turma-periodo" name="periodo" required placeholder="Ex.: 2026.2" />
+          </label>
+
+          <label for="select-turma-professor">
+            Professor Responsável
+            <select name="professor_id" id="select-turma-professor">
+              <option value="">-- Sem professor definido --</option>
+            </select>
+          </label>
+
+          <label for="turma-sala">
+            Sala
+            <input type="text" id="turma-sala" name="sala" placeholder="Ex.: Lab 03" />
+          </label>
+
+          <div class="actions">
+            <button type="submit" id="btn-salvar-turma" class="btn primary">Salvar</button>
+            <button type="button" id="btn-limpar-turma" class="btn secondary" data-reset="turmas">Limpar</button>
+          </div>
+        </form>
+
+        <div class="card table-card">
+          <div class="card-header">
+            <h2>Turmas Cadastradas</h2>
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Código</th>
+                  <th>Nome</th>
+                  <th>Período</th>
+                  <th>Professor ID</th>
+                  <th>Sala</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-turmas"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="tab-matriculas" class="tab-panel">
+      <div class="grid">
+        <form id="form-matriculas" class="card">
+          <h2 id="title-matriculas">Nova Matrícula</h2>
+          <input type="hidden" id="matricula-id" name="id" />
+
+          <label for="select-matricula-aluno">
+            Aluno *
+            <select name="aluno_id" id="select-matricula-aluno" required>
+              <option value="">Selecione um aluno...</option>
+            </select>
+          </label>
+
+          <label for="select-matricula-turma">
+            Turma *
+            <select name="turma_id" id="select-matricula-turma" required>
+              <option value="">Selecione uma turma...</option>
+            </select>
+          </label>
+
+          <div class="row-2">
+            <label for="matricula-nota-final">
+              Nota Final
+              <input type="number" id="matricula-nota-final" step="0.01" min="0" max="10" name="nota_final" placeholder="0.00 - 10.00" />
+            </label>
+
+            <label for="matricula-frequencia-pct">
+              Frequência (%)
+              <input type="number" id="matricula-frequencia-pct" step="0.01" min="0" max="100" name="frequencia_pct" placeholder="0 - 100" />
+            </label>
+          </div>
+
+          <label for="matricula-status">
+            Status
+            <select id="matricula-status" name="status">
+              <option value="CURSANDO">CURSANDO</option>
+              <option value="APROVADO">APROVADO</option>
+              <option value="REPROVADO">REPROVADO</option>
+              <option value="TRANCADO">TRANCADO</option>
+            </select>
+          </label>
+
+          <label for="matricula-observacao">
+            Observação
+            <input type="text" id="matricula-observacao" name="observacao" placeholder="Opcional" />
+          </label>
+
+          <div class="actions">
+            <button type="submit" id="btn-salvar-matricula" class="btn primary">Salvar</button>
+            <button type="button" id="btn-limpar-matricula" class="btn secondary" data-reset="matriculas">Limpar</button>
+          </div>
+        </form>
+
+        <div class="card table-card">
+          <div class="card-header">
+            <h2>Matrículas Registradas</h2>
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Aluno</th>
+                  <th>Turma</th>
+                  <th>Nota</th>
+                  <th>Freq.</th>
+                  <th>Status</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-matriculas"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
