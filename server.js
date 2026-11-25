@@ -135,3 +135,61 @@ app.post('/matriculas', (req, res) => {
     res.status(201).json('Cadastro de matricula realizado com sucesso!');
   });
 });
+
+//ROTAS PUT
+
+app.put('/professores/:id', (req, res) => {
+  const { id } = req.params;
+  const { nome, email, especialidade, ativo } = req.body;
+  const query = 'UPDATE professores SET nome = ?, email = ?, especialidade = ?, ativo = ? WHERE id = ?';
+  db.query(query, [nome, email, especialidade, ativo, id], (err, results) => {
+    if (err) {
+      console.error('Erro ao atualizar professor:', err);
+      res.status(500).send('Erro ao atualizar professor');
+      return;
+    }
+    res.json('Atualização de professor realizada com sucesso!');
+  });
+});
+
+app.put('/alunos/:id', (req, res) => {
+  const { id } = req.params;
+  const { matricula, nome, email, curso, ativo } = req.body;
+  const query = 'UPDATE alunos SET matricula = ?, nome = ?, email = ?, curso = ?, ativo = ? WHERE id = ?';
+  db.query(query, [matricula, nome, email, curso, ativo, id], (err, results) => {
+    if (err) {
+      console.error('Erro ao atualizar aluno:', err);
+      res.status(500).send('Erro ao atualizar aluno');
+      return;
+    }
+    res.json('Atualização de aluno realizada com sucesso!');
+  });
+});
+
+app.put('/turmas/:id', (req, res) => {
+  const { id } = req.params;
+  const { codigo, nome, periodo, sala, criado_em } = req.body;
+  const query = 'UPDATE turmas SET codigo = ?, nome = ?, periodo = ?, sala = ?, criado_em = ? WHERE id = ?';
+  db.query(query, [codigo, nome, periodo, sala, criado_em, id], (err, results) => {
+    if (err) {
+      console.error('Erro ao atualizar turma:', err);
+      res.status(500).send('Erro ao atualizar turma');
+      return;
+    }
+    res.json('Atualização de turma realizada com sucesso!');
+  });
+});
+
+app.put('/matriculas/:id', (req, res) => {
+  const { id } = req.params;
+  const { aluno_id, turma_id, nota_final, frequencia_pct, status, observacao, data_matricula } = req.body;
+  const query = 'UPDATE matriculas SET aluno_id = ?, turma_id = ?, nota_final = ?, frequencia_pct = ?, status = ?, observacao = ?, data_matricula = ? WHERE id = ?';
+  db.query(query, [aluno_id, turma_id, nota_final, frequencia_pct, status, observacao, data_matricula, id], (err, results) => {
+    if (err) {
+      console.error('Erro ao atualizar matricula:', err);
+      res.status(500).send('Erro ao atualizar matricula');
+      return;
+    }
+    res.json('Atualização de matricula realizada com sucesso!');
+  });
+});
